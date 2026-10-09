@@ -1,9 +1,10 @@
-# Alper Kauppa V5 Premium
+# Alper Kauppa V5 — Görsel düzeltme
 
-Premium mobil görünüm, 18 adet projeye dahil özgün vektörel ürün illüstrasyonu, kart animasyonları, yenilenmiş müşteri, kasa ve toptancı görünümü. V4 oyun mantığı, 30 müşteri, stok, alışveriş, NFC, kamera barkod, günlük görev, oyun parası, sesler ve Android PWA korunur.
+Bu sürümde 18 ürün görseli `index.html` içine gömülüdür. `assets` klasörü sunucuya yüklenmese bile ürün resimleri çalışır.
 
-## Kurulum
-ZIP içindeki `index.html`, `manifest.webmanifest`, `sw.js`, `icons/` ve `assets/` dosyalarını GitHub deposunun kök dizinine **aynı dizin yapısı ile** yükleyin. Vercel proje ayarları: Framework = Other, Output Directory boş. Vercel GitHub'a bağlıysa yeni commit otomatik dağıtılır.
+## GitHub güncelleme
+Mevcut depoda yalnızca **index.html** dosyasını yenisiyle değiştirmen görsel hatasını gidermek için yeterlidir. Tam PWA paketi için diğer dosyaları da koru.
 
-## Notlar
-Mobil tarayıcı kısıtları: Web NFC yalnızca destekleyen Android Chrome cihazlarında çalışır. Gerçek ödeme yok. Kamera ve Fince sentez sesi için cihaz/tarayıcı izinleri gerekir. Mevcut localStorage oyun verileri korunur. Ürün resimleri dış kaynak indirmeyen SVG dosyalarıdır.
+Vercel'e bağlı GitHub deposunda commit sonrası otomatik dağıtım çalışabilir. Tarayıcı eski sürümü gösterirse sayfayı yenile veya uygulamayı yeniden aç.
+
+Bu uygulama gerçek ödeme almaz. NFC okuma Android'de destekleyen tarayıcılarla sınırlıdır.
