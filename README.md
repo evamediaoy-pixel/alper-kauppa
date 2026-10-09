@@ -1,10 +1,13 @@
 # Alper Kauppa 🛒
-Lasten leikkikauppa: tuotevalikoima, ostoskori, viivakoodin kameratunnistus (tuetuilla selaimilla), tekstikoodit 10001–10018, kuvitteellinen maksu ja Android Web NFC NDEF -tagien lukeminen.
 
-**Ei käsittele oikeita maksuja.** iPhone Safari ei tue Web NFC -lukua. Android Chrome voi lukea NDEF-tekstitunnisteen `ALPER-KAUPPA` HTTPS-osoitteessa, kun käyttäjä antaa NFC-luvulle luvan.
+Leikkikauppa lapsille. Ei oikeita maksuja.
 
-## Julkaisu
-Luo GitHubiin uusi repository nimeltä `alper-kauppa`. Lataa tämän kansion tiedostot repositoryn juureen. Vercelissä valitse Add New Project → Import Git Repository → `alper-kauppa` → Deploy. Framework Preset: Other, Output Directory: jätä tyhjäksi.
+## Julkaisu GitHub + Vercel
+1. Lataa index.html ja README.md GitHub-repositorion juureen.
+2. Vercelissä Import Git Repository > valitse repo > Deploy.
+3. Framework preset: Other. Ei build commandia.
 
-## Huomautus viivakoodeista
-Tuotekoodeja 10001–10018 voi käyttää manuaalisesti tai tehdä niistä CODE_128 -viivakoodit. Oikeat kauppojen EAN-koodit eivät automaattisesti vastaa tämän leikin tuotteita.
+## Toiminnot
+Tuoteluettelo, ostoskori, kamera-viivakoodinlukija (kun selain tukee BarcodeDetectoria), koodin syöttö, leikkimaksu, NFC-luku tuetuilla Android-laitteilla, kuitti, pelimusiikkiefektit ja tähdet. Äänet voi sulkea yläpalkista.
+
+NFC ei toimi suoraan iOS Safari -selaimessa.
