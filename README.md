@@ -1,10 +1,9 @@
-# Alper Kauppa V5 — Görsel düzeltme
+# ALPER KAUPPA V6 — Market oyunu
 
-Bu sürümde 18 ürün görseli `index.html` içine gömülüdür. `assets` klasörü sunucuya yüklenmese bile ürün resimleri çalışır.
+V5 korunur: 30 asiakasta, varasto, tukku, maksaminen leikkikortilla, NFC Android Web NFC, viivakoodinlukija, tehtävät, äänet ja PWA.
 
-## GitHub güncelleme
-Mevcut depoda yalnızca **index.html** dosyasını yenisiyle değiştirmen görsel hatasını gidermek için yeterlidir. Tam PWA paketi için diğer dosyaları da koru.
+V6: liikkuva 2D-markettinäyttämö, vuodenaikojen vaihtaminen, lemmikki, mobiiliystävällinen kassapeli (kosketus/raahaus), vaihtorahan laskeminen, kahvi/donitsi/pizza-minipeli, toimituslaatikoiden purkaminen. Myyntiin kirjaaminen tapahtuu edelleen onnistuneen maksun yhteydessä; laatikoiden purku ei lisää varastoa kahdesti.
 
-Vercel'e bağlı GitHub deposunda commit sonrası otomatik dağıtım çalışabilir. Tarayıcı eski sürümü gösterirse sayfayı yenile veya uygulamayı yeniden aç.
+GitHub: lataa tämän paketin kaikki tiedostot repositoryn juureen. Vercel: GitHubissa olevasta repositoriosta deploy, Framework Preset Other, Output Directory tyhjä.
 
-Bu uygulama gerçek ödeme almaz. NFC okuma Android'de destekleyen tarayıcılarla sınırlıdır.
+Kuvat ovat HTML-tiedostossa (ei puuttuvia assets-kansioita). Ei oikeita maksuja. Puhelimella NFC lukeminen on Android Web NFC -riippuvainen. Kamera tarvitsee HTTPS:n ja käyttöluvan.
