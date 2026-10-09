@@ -1,13 +1,5 @@
-# Alper Kauppa 🛒
+# Alper Kauppa — Varasto + Tukku 🚚
 
-Leikkikauppa lapsille. Ei oikeita maksuja.
+Çocuklar için gerçek ödeme içermeyen market oyunu. Ürünler başlangıçta 5 adet stokludur; sepete eklemek yalnızca rezervasyon yapar, **başarılı oyuncak ödeme** sonrasında depodan düşer. **Tukku** bölümünden adet seçip depoyu doldurabilirsiniz. Stoklar bu tarayıcıda localStorage içinde kaydedilir, farklı cihazlar arasında senkronize edilmez.
 
-## Julkaisu GitHub + Vercel
-1. Lataa index.html ja README.md GitHub-repositorion juureen.
-2. Vercelissä Import Git Repository > valitse repo > Deploy.
-3. Framework preset: Other. Ei build commandia.
-
-## Toiminnot
-Tuoteluettelo, ostoskori, kamera-viivakoodinlukija (kun selain tukee BarcodeDetectoria), koodin syöttö, leikkimaksu, NFC-luku tuetuilla Android-laitteilla, kuitti, pelimusiikkiefektit ja tähdet. Äänet voi sulkea yläpalkista.
-
-NFC ei toimi suoraan iOS Safari -selaimessa.
+GitHub deposu köküne `index.html` dosyasını yükleyin; Vercel Git bağlantısı mevcutsa yeni commit ile otomatik yayınlanır.
