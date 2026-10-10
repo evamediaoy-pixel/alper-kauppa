@@ -1,10 +1,24 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js';
+// Try alternate official CDN mirrors if a module source is blocked.
+let THREE;
+let loaderErrors=[];
+for (const source of [
+  'https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js',
+  'https://unpkg.com/three@0.164.1/build/three.module.js',
+  'https://esm.sh/three@0.164.1'
+]) {
+  try { THREE = await import(source); break; }
+  catch (error) { loaderErrors.push(String(error)); }
+}
+if (!THREE) throw new Error('Three.js yüklenemedi: ' + loaderErrors.join(' | '));
+
 
 const PRODUCT=[{id:'maito',name:'Maito',price:1.49,color:0xf4f3ef,kind:'carton'},{id:'leipa',name:'Leipä',price:2.29,color:0xad7434,kind:'bread'},{id:'mehu',name:'Mehu',price:1.90,color:0xffa53b,kind:'carton'},{id:'vesi',name:'Vesi',price:1,color:0x79cbe5,kind:'bottle'},{id:'kahvi',name:'Kahvi',price:2.50,color:0x51372b,kind:'pack'},{id:'omena',name:'Omena',price:.80,color:0xd72e2e,kind:'fruit'},{id:'banaani',name:'Banaani',price:.65,color:0xe9d351,kind:'fruit'},{id:'donitsi',name:'Donitsi',price:1.75,color:0xa77b50,kind:'bread'},{id:'juusto',name:'Juusto',price:3.95,color:0xf1c945,kind:'pack'},{id:'pizza',name:'Pizza',price:5.50,color:0xb75d2d,kind:'pack'},{id:'limsa',name:'Limsa',price:1.95,color:0x9b3f55,kind:'bottle'},{id:'jaatelo',name:'Jäätelö',price:2.10,color:0xebaed6,kind:'pack'}];
 const fmt=n=>n.toLocaleString('fi-FI',{style:'currency',currency:'EUR'});
 const STORAGE='alper-v7-shop-state';const fresh=()=>({money:30,sold:0,stock:Object.fromEntries(PRODUCT.map(x=>[x.id,6])),basket:{},customerIndex:0,orders:0});let state;try{state={...fresh(),...JSON.parse(localStorage.getItem(STORAGE)||'{}')}}catch{state=fresh()};state.stock={...fresh().stock,...state.stock};state.basket={};const save=()=>{try{localStorage.setItem(STORAGE,JSON.stringify(state))}catch{}};
 const stage=document.querySelector('#stage'),panel=document.querySelector('#panel'),modal=document.querySelector('#modal'),hint=document.querySelector('#hint');const show=(html)=>{modal.innerHTML=html;panel.classList.remove('hidden')},hide=()=>{panel.classList.add('hidden');modal.replaceChildren()},tip=t=>hint.textContent=t;let audio=null;const beep=(f=880,t=.11)=>{try{audio??=new (window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume();let o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.value=f;g.gain.value=.04;o.connect(g);g.connect(audio.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+t);o.stop(audio.currentTime+t)}catch{}};
 const sync=()=>{document.querySelector('#wallet').textContent='💶 '+fmt(state.money);document.querySelector('#basket').textContent='🧺 '+Object.values(state.basket).reduce((a,b)=>a+b,0);document.querySelector('#sales').textContent='⭐ '+state.sold;save()};
+const glTest=document.createElement('canvas');
+if(!glTest.getContext('webgl2') && !glTest.getContext('webgl')) throw new Error('WebGL bu tarayıcıda kullanılamıyor. Safari ayarlarını ve cihazı kontrol et.');
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;stage.append(renderer.domElement);
 const scene=new THREE.Scene();scene.background=new THREE.Color(0xabc6ce);scene.fog=new THREE.Fog(0xa8c8d0,20,43);const camera=new THREE.PerspectiveCamera(52,innerWidth/innerHeight,.1,110);scene.add(new THREE.HemisphereLight(0xffffff,0x71909e,2.4));const sun=new THREE.DirectionalLight(0xfff0d5,3.2);sun.position.set(-5,12,7);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-14;sun.shadow.camera.right=14;sun.shadow.camera.top=14;sun.shadow.camera.bottom=-14;scene.add(sun);
 const mat=(color,roughness=.75,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});const M={floor:mat(0xd7dfe2),wall:mat(0xeef4ef),trim:mat(0x486878),wood:mat(0xb4825c),metal:mat(0x8c9aa0,.43,.5),glass:new THREE.MeshPhysicalMaterial({color:0xc7effa,transparent:true,opacity:.32,roughness:.08,metalness:.1}),green:mat(0x407765),yellow:mat(0xf1c25f),dark:mat(0x26414d)};

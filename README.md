@@ -13,3 +13,7 @@ Lataa tämän hakemiston **kaikki** tiedostot GitHub-repositorion juureen: `inde
 - Tämä on erillinen tekninen prototyyppi: aiemman V6:n minipelit, Web NFC ja kamera-barkoodinlukija eivät ole vielä siirretty tähän 3D-käyttöliittymään. Älä korvaa toimivaa V6-julkaisua ilman testausta.
 - Rahat, varasto ja asiakasmäärät säilyvät laitteen selaimen localStoragessa, eivät siirry toiselle laitteelle.
 - Ei oikeita maksuja eikä käyttäjätilejä.
+
+
+## V7.1 onarım / diagnostiikka
+Siyah ekran için görünür hata mesajı ve yeniden deneme düğmesi eklendi; Three.js üç alternatif CDN üzerinden yüklenmeyi dener. Oyun başladığında panel başlangıç ekranını gösterir. Bu sürüm canlı cihazda henüz doğrulanmadı. Mevcut çalışan V6 sitesini değiştirmeyin; ayrı V7 projesinde test edin.
