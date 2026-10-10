@@ -17,6 +17,6 @@
  window.addEventListener('unhandledrejection',e=>{if(!window.__alperReady)errorView(e.reason?.message||e.reason||'Promise rejected')});
  window.__alperError=errorView;
  const timer=setTimeout(()=>{if(!window.__alperReady)errorView('Yükleme 15 saniyede tamamlanmadı. Game.js veya Three.js erişimi başarısız olabilir.')},15000);
- import('./game.js?v=7.1').then(()=>{window.__alperReady=true;clearTimeout(timer)}).catch(err=>{clearTimeout(timer);errorView(err?.stack||err?.message||err)});
+ import('./game.js?v=7.2').then(()=>{window.__alperReady=true;clearTimeout(timer)}).catch(err=>{clearTimeout(timer);errorView(err?.stack||err?.message||err)});
 })();
 </script></body></html>
