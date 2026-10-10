@@ -1,1 +1,25 @@
-{"name":"Alper Kauppa 3D","short_name":"Alper 3D","description":"Lasten 3D-leikkikauppa","start_url":"./","scope":"./","display":"standalone","background_color":"#14293c","theme_color":"#14293c","icons":[{"src":"icons/icon-192.png","sizes":"192x192","type":"image/png"},{"src":"icons/icon-512.png","sizes":"512x512","type":"image/png"}]}
+{
+  "name": "Alper Kauppa – Leikkikauppa",
+  "short_name": "Alper Kauppa",
+  "description": "Alperin ikioma kauppaleikki – ei oikeita ostoksia",
+  "lang": "fi",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fff6de",
+  "theme_color": "#794add",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

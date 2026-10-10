@@ -1,7 +1,10 @@
-# Alper Kauppa V7 — Käynnistyskorjaus
+# Alper Kauppa V5 — Görsel düzeltme
 
-Korjaa JavaScript-virheen: valikon painikkeita ei enää alusteta ennen valikon avaamista. Tämä aiheutti 3D-näkymän käynnistymisen keskeytymisen.
+Bu sürümde 18 ürün görseli `index.html` içine gömülüdür. `assets` klasörü sunucuya yüklenmese bile ürün resimleri çalışır.
 
-Lataa GitHubin olemassa olevan V7-projektin juuressa **game.js** ja **index.html** uuteen versioon. Älä korvaa vanhan toimivan Alper Kauppa V6 -projektin tiedostoja.
+## GitHub güncelleme
+Mevcut depoda yalnızca **index.html** dosyasını yenisiyle değiştirmen görsel hatasını gidermek için yeterlidir. Tam PWA paketi için diğer dosyaları da koru.
 
-Kolmiulotteinen selainpeli, ei oikeita maksuja.
+Vercel'e bağlı GitHub deposunda commit sonrası otomatik dağıtım çalışabilir. Tarayıcı eski sürümü gösterirse sayfayı yenile veya uygulamayı yeniden aç.
+
+Bu uygulama gerçek ödeme almaz. NFC okuma Android'de destekleyen tarayıcılarla sınırlıdır.
