@@ -163,15 +163,18 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeReceipts()});
  function setProgress(n,text){let v=Math.max(0,Math.min(100,Math.round(n)));bar.style.width=v+'%';progress.setAttribute('aria-valuenow',String(v));status.textContent=text}
  function fail(message){ready=false;setProgress(0,'Pelin lataus epäonnistui');error.textContent=message;retry.hidden=false;play.disabled=true}
  async function asset(url){const response=await fetch(url,{cache:'no-cache'});if(!response.ok)throw Error(url+' ('+response.status+')');await response.blob()}
+ async function optionalAsset(url){try{await asset(url);return true}catch(e){console.warn('Non-critical PWA asset missing:',url,e.message);return false}}
  async function boot(){if(booting)return;booting=true;error.textContent='';retry.hidden=true;play.disabled=true;
- try{setProgress(8,'Valmistellaan kauppaa…');
- const required=[['./manifest.webmanifest','Sovelluksen tiedot'],['./icons/icon-192.png','Pelikuvake'],['./icons/icon-512.png','Pelikuvake']];
- for(let i=0;i<required.length;i++){await asset(required[i][0]);setProgress(14+(i+1)*19,'Ladataan: '+required[i][1])}
- const art=document.getElementById('premium-art');if(art && art.tagName==='IMG' && !art.complete){await art.decode().catch(()=>{})}
- setProgress(83,'Tarkistetaan pelikassa…');
- if(typeof start!=='function'||typeof openReceipts!=='function'||!$('main')||!$('products'))throw Error('Pelin toimintoja ei löytynyt');
- setProgress(100,'Valmis! Paina PELAA');ready=true;play.disabled=false;$('v8Receipts').hidden=false;
- }catch(e){console.error('Alper Kauppa start error',e);fail('Latausvirhe: '+(e.message||'Tuntematon virhe')+'. Tarkista internetyhteys ja yritä uudelleen.')}finally{booting=false}}
+ try{
+  setProgress(15,'Valmistellaan kauppaa…');
+  // Logo, manifest and icons are optional; lack of an install icon must never block checkout gameplay.
+  const optional=[['./manifest.webmanifest','Sovelluksen tiedot'],['./icons/icon-192.png','Pelikuvake'],['./icons/icon-512.png','Pelikuvake']];
+  for(let i=0;i<optional.length;i++){await optionalAsset(optional[i][0]);setProgress(27+(i+1)*14,'Valmistellaan: '+optional[i][1])}
+  const art=document.getElementById('premium-art');if(art && art.tagName==='IMG' && !art.complete){await art.decode().catch(()=>{})}
+  setProgress(84,'Tarkistetaan pelikassa…');
+  if(typeof start!=='function'||typeof openReceipts!=='function'||!$('main')||!$('products'))throw Error('Pelin toimintoja ei löytynyt');
+  setProgress(100,'Valmis! Paina PELAA');ready=true;play.disabled=false;$('v8Receipts').hidden=false;
+ }catch(e){console.error('Alper Kauppa start error',e);fail('Latausvirhe: '+(e.message||'Tuntematon virhe')+'. Yritä uudelleen.')}finally{booting=false}}
  function enter(){if(!ready||entering)return;entering=true;try{start();document.body.classList.add('v8-playing');splash.hidden=true;nav.hidden=false;if(!$('main').classList.contains('active'))$('main').classList.add('active');}catch(e){entering=false;fail('Peli ei käynnistynyt: '+e.message);splash.hidden=false}}
  play.addEventListener('click',enter);retry.addEventListener('click',boot);
  $('v8Receipts').addEventListener('click',()=>{if(!ready)return;enter();openReceipts()});
