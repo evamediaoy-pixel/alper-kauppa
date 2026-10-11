@@ -1,10 +1,10 @@
 {
-  "name": "Alper Kauppa – Leikkikauppa",
+  "name": "Alper Kauppa — Leikkikauppa",
   "short_name": "Alper Kauppa",
   "description": "Alperin ikioma kauppaleikki – ei oikeita ostoksia",
   "lang": "fi",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#fff6de",
   "theme_color": "#794add",
