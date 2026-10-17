@@ -26,6 +26,7 @@
   for(let i=0;i<count;i++){
    const item=document.createElement("span");
    item.className="ak-floor-item";
+   item.dataset.pass=String(i%5);
    item.textContent=produce[(i+Math.floor(Math.random()*produce.length))%produce.length];
    item.style.left=(8+((i+.37)%count)*(Math.max(10,width-60)/count))+"px";
    item.style.bottom=(68+(i%5)*27)+"px";
@@ -55,12 +56,12 @@
   e.innerHTML='<div class="ak-shine">✨</div><div class="ak-light"></div><div class="ak-body"></div><div class="ak-brush"></div><div class="ak-wheel ak-w1"></div><div class="ak-wheel ak-w2"></div>';
   document.body.appendChild(e);return e;
  }
- function collectUnder(machine){
+ function collectUnder(machine,pass){
   const rect=machine.getBoundingClientRect();
   litter=litter.filter(item=>{
    if(!item.isConnected)return false;
    const r=item.getBoundingClientRect();
-   if(rect.right>r.left+7&&rect.left<r.right-7){
+   if(Number(item.dataset.pass)<=pass&&rect.right>r.left+7&&rect.left<r.right-7){
     item.classList.add("ak-picked");setTimeout(()=>item.remove(),300);return false;
    }
    return true;
@@ -72,24 +73,26 @@
   old?.classList.remove("running");
   const machines=[newMachine("ak-blue",0),newMachine("ak-orange",1),newMachine("ak-green",2)];
   const reduced=window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-  const span=reduced?800:5900,delay=reduced?140:550;
+  // Five crossings = three forward passes and two returns within 15 seconds.
+  const passDuration=reduced?500:2700;
+  const passInterval=reduced?600:3000;
+  const stagger=reduced?35:120;
   engineStart();
-  let raf,stopped=false;
-  const tick=()=>{machines.forEach(collectUnder);if(!stopped)raf=requestAnimationFrame(tick)};
+  let raf,stopped=false,currentPass=0;
+  const tick=()=>{machines.forEach(m=>collectUnder(m,currentPass));if(!stopped)raf=requestAnimationFrame(tick)};
   raf=requestAnimationFrame(tick);
-  const timers=[];
-  machines.forEach((m,i)=>{
-   timers.push(setTimeout(()=>{
-    m.style.transition="transform "+span+"ms linear";
-    m.style.transform="translateX("+(innerWidth+190)+"px)";
-   },40+i*delay));
-  });
-  const returnAt=reduced?1650:7300;
-  machines.forEach((m,i)=>timers.push(setTimeout(()=>{
-   m.classList.add("ak-reverse");
-   m.style.transition="transform "+span+"ms linear";
-   m.style.transform="translateX(-180px)";
-  },returnAt+i*delay)));
+  for(let pass=0;pass<5;pass++){
+   for(let i=0;i<machines.length;i++){
+    const m=machines[i];
+    setTimeout(()=>{
+     if(stopped)return;
+     currentPass=Math.max(currentPass,pass);
+     m.classList.toggle("ak-reverse",pass%2===1);
+     m.style.transition="transform "+passDuration+"ms linear";
+     m.style.transform=pass%2===0?"translateX("+(innerWidth+190)+"px)":"translateX(-180px)";
+    },pass*passInterval+i*stagger+30);
+   }
+  }
   finishTimer=setTimeout(()=>{
    stopped=true;cancelAnimationFrame(raf);
    // Any floor item missed at the viewport edge is cleared as the last machine leaves.
