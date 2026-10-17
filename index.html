@@ -658,7 +658,7 @@ function attachCleaner(){
   try{if(typeof playSound==="function")playSound("start")}catch(e){}
   try{if(typeof speak==="function")speak("Alper siivoaa kaupan!")}catch(e){}
   try{if(typeof showToast==="function")showToast("✨ Kauppa siivottu!")}catch(e){}
-  setTimeout(()=>{cleaner.classList.remove("running");btn.disabled=false},5100);
+  if(typeof window.akStartCleaningParade==="function")window.akStartCleaningParade(cleaner,btn);else setTimeout(()=>{cleaner.classList.remove("running");btn.disabled=false},5100);
  });
 }
 function attachAppliances(){
@@ -693,5 +693,60 @@ if(oldPayment)paySuccess=function(){
 };
 attachCleaner();attachAppliances();
 window.addEventListener("pageshow",updateStocks);
+})();
+</script><style id="ak-parade-css">
+#ak-cleaner{opacity:0!important;animation:none!important}
+.ak-clean-unit{position:fixed;z-index:89;left:0;bottom:calc(20px + env(safe-area-inset-bottom));width:134px;height:80px;pointer-events:none;will-change:transform;transition:transform 4.1s ease-in-out}
+.ak-clean-unit .ak-body{position:absolute;bottom:19px;left:10px;width:112px;height:44px;border-radius:26px 26px 13px 13px;border:3px solid #476474;background:linear-gradient(#a8e8df,#66bdb6)}
+.ak-clean-unit.ak-blue .ak-body{background:linear-gradient(#a8d9fa,#6ca9d9)}
+.ak-clean-unit.ak-orange .ak-body{background:linear-gradient(#fbd9a3,#eeb06c)}
+.ak-clean-unit .ak-body:after{content:'✦';position:absolute;left:46px;top:11px;color:#fff;font-size:23px}
+.ak-clean-unit .ak-wheel{position:absolute;bottom:9px;width:24px;height:24px;border-radius:50%;background:#394d5b;border:5px solid #d6e4e9}
+.ak-clean-unit .ak-w1{left:27px}.ak-clean-unit .ak-w2{left:101px}
+.ak-clean-unit .ak-brush{position:absolute;left:29px;bottom:13px;width:78px;height:10px;border-radius:12px;background:#f1c76a}
+.ak-clean-unit .ak-light{position:absolute;left:32px;top:6px;border-radius:50%;width:18px;height:12px;background:#fff7a9}
+.ak-clean-unit .ak-shine{position:absolute;top:-9px;right:1px;font-size:20px;animation:ak-clean-twinkle .7s alternate infinite}
+.ak-clean-unit.ak-reverse{scale:-1 1}
+@keyframes ak-clean-twinkle{from{opacity:.3;transform:translateY(7px)}to{opacity:1;transform:translateY(-4px)}}
+@media(prefers-reduced-motion:reduce){.ak-clean-unit{transition-duration:.05s!important}}
+</style>
+<script id="ak-parade-js">
+(function(){
+let active=false;
+let audio=null,interval=null;
+function startAudio(){
+ try{
+ const C=window.AudioContext||window.webkitAudioContext;
+ if(!C)return;
+ audio=new C();
+ if(audio.state==="suspended")audio.resume();
+ const motor=audio.createOscillator(),low=audio.createOscillator(),gain=audio.createGain();
+ motor.type="sawtooth";motor.frequency.value=76;
+ low.type="sine";low.frequency.value=48;
+ gain.gain.value=.016;
+ motor.connect(gain);low.connect(gain);gain.connect(audio.destination);
+ motor.start();low.start();audio._units=[motor,low,gain];
+ interval=setInterval(()=>{if(!audio)return;const t=audio.currentTime;motor.frequency.setTargetAtTime(75+Math.random()*19,t,.09)},480);
+ }catch(e){console.warn("Cleaning audio unavailable",e)}
+}
+function stopAudio(){clearInterval(interval);interval=null;if(audio){try{(audio._units||[]).slice(0,2).forEach(x=>x.stop());audio.close()}catch(e){}audio=null}}
+function unit(cls,index){
+ const m=document.createElement("div");m.className="ak-clean-unit "+cls;
+ m.style.transform="translateX(-180px)";
+ m.style.bottom="calc("+(18+index*7)+"px + env(safe-area-inset-bottom))";
+ m.innerHTML='<div class="ak-shine">✨</div><div class="ak-light"></div><div class="ak-body"></div><div class="ak-brush"></div><div class="ak-wheel ak-w1"></div><div class="ak-wheel ak-w2"></div>';
+ document.body.appendChild(m);return m;
+}
+window.akStartCleaningParade=function(old,btn){
+ if(active)return;
+ active=true;old.classList.remove("running");
+ const machines=[unit("ak-blue",0),unit("ak-orange",1),unit("ak-green",2)];
+ startAudio();
+ const width=window.innerWidth;
+ machines.forEach((m,i)=>setTimeout(()=>{m.style.transform="translateX("+(width+30)+"px)"},i*460+50));
+ setTimeout(()=>machines.forEach((m,i)=>{m.classList.add("ak-reverse");m.style.transform="translateX(-180px)";}),5100);
+ setTimeout(()=>{machines.forEach(m=>m.remove());stopAudio();btn.disabled=false;active=false;try{if(typeof speak==="function")speak("Siivous valmis! Kauppa on taas puhdas.");}catch(e){}},9800);
+};
+window.addEventListener("pagehide",stopAudio);
 })();
 </script></body></html>
