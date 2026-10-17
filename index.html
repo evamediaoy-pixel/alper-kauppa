@@ -302,11 +302,37 @@ const customers=[{"name":"Aino","emoji":"👩","want":["10001","10003"],"say":"M
 const upgrades=[{id:'coffee',emoji:'☕',name:'Kahvikone',price:1200},{id:'fridge',emoji:'🧊',name:'Uusi jääkaappi',price:2400},{id:'shelf',emoji:'🧸',name:'Leluhylly',price:3500},{id:'plant',emoji:'🌼',name:'Kukkia',price:600},{id:'sign',emoji:'🌈',name:'Värikäs kyltti',price:1800},{id:'bell',emoji:'🔔',name:'Kassakello',price:900}];
 function money(cents){return euro(cents/100)}
 function refreshGame(){updateDay();el('wallet').textContent=money(game.wallet);el('served').textContent=game.served;el('level').textContent=1+Math.floor(game.served/5);renderQuests();renderUpgrades();el('storeDecor').textContent='🏪 Alperin kauppa '+upgrades.filter(u=>game.upgrades.includes(u.id)).map(u=>u.emoji).join(' ');if(customer)renderCustomer()}
-function speak(text){if(!soundsOn||!('speechSynthesis'in window))return;try{speechSynthesis.cancel();const utter=new SpeechSynthesisUtterance(text);utter.lang='fi-FI';utter.rate=.88;utter.pitch=1.14;const voice=speechSynthesis.getVoices().find(v=>v.lang.toLowerCase().startsWith('fi'));if(voice)utter.voice=voice;speechSynthesis.speak(utter)}catch{}}
+// Each shopper has a stable voice profile. Finnish voices are preferred when available.
+const alperVoiceProfiles=[
+ {rate:1.04,pitch:1.4},{rate:.78,pitch:.82},{rate:.83,pitch:1.07},
+ {rate:1.1,pitch:1.55},{rate:1,pitch:1.35},{rate:1.12,pitch:1.2},
+ {rate:.94,pitch:1.27},{rate:.76,pitch:.72},{rate:.89,pitch:1.12},
+ {rate:1.04,pitch:.97},{rate:1.09,pitch:1.48},{rate:.8,pitch:.85},
+ {rate:.82,pitch:1.21},{rate:1.1,pitch:1.32},{rate:.95,pitch:1.31},
+ {rate:1.02,pitch:1.25}
+];
+function speak(text,role='narrator'){
+ if(!soundsOn||!('speechSynthesis'in window))return;
+ try{
+  speechSynthesis.cancel();
+  const utter=new SpeechSynthesisUtterance(text);
+  utter.lang='fi-FI';
+  const fiVoices=speechSynthesis.getVoices().filter(v=>/^fi(-|$)/i.test(v.lang));
+  const index=role==='customer'?Math.max(0,game.customerIndex%customers.length):-1;
+  const profile=index<0?{rate:.9,pitch:1.03}:alperVoiceProfiles[index%alperVoiceProfiles.length];
+  utter.rate=profile.rate;utter.pitch=profile.pitch;
+  utter.volume=1;
+  if(fiVoices.length){
+   // Alternate available Finnish voices; never switch to a foreign language for variety.
+   utter.voice=fiVoices[index<0?0:index%fiVoices.length];
+  }
+  speechSynthesis.speak(utter);
+ }catch(e){console.warn('Finnish speech unavailable',e)}
+}
 function chooseCustomer(){customer=customers[game.customerIndex%customers.length];renderCustomer()}
 function renderCustomer(){if(!customer)return;const queue=document.getElementById('customerQueue');if(queue)queue.innerHTML='<b>🧍 Jonossa:</b> '+[1,2,3].map(i=>{const x=customers[(game.customerIndex+i)%customers.length];return '<span title="'+x.name+'">'+x.emoji+' '+x.name+'</span>'}).join('');el('customerEmoji').textContent=customer.emoji;el('customerName').textContent=customer.name;el('customerWants').textContent=customer.say;let have=customer.want.filter(code=>(cart[code]||0)>0).length;el('customerProgress').style.width=Math.round(100*have/customer.want.length)+'%';el('customerStatus').textContent=have===customer.want.length?'✅ Kaikki tuotteet löytyivät!':`${have}/${customer.want.length} tuotetta korissa`}
 function nextCustomer(){game.customerIndex++;saveGame();chooseCustomer();speakCustomer();playSound('start')}
-function speakCustomer(){if(!customer)chooseCustomer();speak(customer.say)}
+function speakCustomer(){if(!customer)chooseCustomer();speak(customer.say,'customer')}
 function costCents(p){return Math.max(30,Math.round(p.price*55))}
 function totalWholesaleCents(){return products.reduce((sum,p)=>sum+(wholesale[p.code]||0)*costCents(p),0)}
 function renderQuests(){const tasks=[['sale','Palvele 2 asiakasta',game.dailySales||0,2,300],['item','Myy 5 tuotetta',game.dailyItems||0,5,200],['order','Tilaa Tukusta',game.dailyOrders||0,1,150]];el('questList').innerHTML=tasks.map(([key,title,n,goal,reward])=>{const claimed=game.questsClaimed.includes(key),ready=n>=goal;return `<div class="quest"><span><b>${title}</b><br><small>${Math.min(n,goal)} / ${goal} · palkinto ${money(reward)}</small></span><button ${!ready||claimed?'disabled':''} onclick="claimQuest('${key}')">${claimed?'✅ Valmis':ready?'🎁 Hae':'🔒'}</button></div>`}).join('')}
