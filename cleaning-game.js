@@ -2,7 +2,7 @@
 (function(){
  "use strict";
  const $=id=>document.getElementById(id);
- const produce=["🍎","🥕","🍌","🥦","🍐","🍅","🥒","🍓"];
+ const produce=["🍎","🥕","🍌","🥦","🍐","🍅","🥒","🍓","🍊","🌽","🍇","🥬","🥔","🧃","📦","🧻","🍂","🥤"];
  let litter=[],running=false,audio=null,oscillators=[],finishTimer=null;
  const css=document.createElement("style");
  css.textContent=`
@@ -22,13 +22,13 @@
   // Do not create overlapping rounds or leak DOM nodes.
   if(running)return;
   litter.forEach(x=>x.remove());litter=[];
-  const count=6+Math.floor(Math.random()*3),width=innerWidth;
+  const count=Math.min(30,Math.max(18,Math.floor(innerWidth/18))),width=innerWidth;
   for(let i=0;i<count;i++){
    const item=document.createElement("span");
    item.className="ak-floor-item";
    item.textContent=produce[(i+Math.floor(Math.random()*produce.length))%produce.length];
-   item.style.left=(8+(i+.5)*(Math.max(10,width-70)/count))+"px";
-   item.style.bottom=(70+(i%3)*25)+"px";
+   item.style.left=(8+((i+.37)%count)*(Math.max(10,width-60)/count))+"px";
+   item.style.bottom=(68+(i%5)*27)+"px";
    item.style.setProperty("--tilt",((i*37)%64-32)+"deg");
    item.setAttribute("aria-hidden","true");
    document.body.appendChild(item);litter.push(item);
@@ -72,7 +72,7 @@
   old?.classList.remove("running");
   const machines=[newMachine("ak-blue",0),newMachine("ak-orange",1),newMachine("ak-green",2)];
   const reduced=window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-  const span=reduced?800:4100,delay=reduced?140:510;
+  const span=reduced?800:5900,delay=reduced?140:550;
   engineStart();
   let raf,stopped=false;
   const tick=()=>{machines.forEach(collectUnder);if(!stopped)raf=requestAnimationFrame(tick)};
@@ -84,7 +84,7 @@
     m.style.transform="translateX("+(innerWidth+190)+"px)";
    },40+i*delay));
   });
-  const returnAt=span+delay*2+230;
+  const returnAt=reduced?1650:7300;
   machines.forEach((m,i)=>timers.push(setTimeout(()=>{
    m.classList.add("ak-reverse");
    m.style.transition="transform "+span+"ms linear";
@@ -96,7 +96,7 @@
    litter.forEach(e=>{e.classList.add("ak-picked");setTimeout(()=>e.remove(),300)});litter=[];
    machines.forEach(e=>e.remove());engineStop();running=false;btn.disabled=false;hint();
    try{if(typeof speak==="function")speak("Siivous valmis! Kauppa on taas puhdas.")}catch(e){}
-  },returnAt+span+delay*2+150);
+  },reduced?3200:15000);
  }
  // Integrate after receipt: the mess appears only when the customer leaves checkout.
  const originalFinish=window.finish;
