@@ -339,7 +339,13 @@ function speak(text,role='narrator'){
 function chooseCustomer(){customer=customers[game.customerIndex%customers.length];renderCustomer()}
 function renderCustomer(){if(!customer)return;const queue=document.getElementById('customerQueue');if(queue)queue.innerHTML='<b>🧍 Jonossa:</b> '+[1,2,3].map(i=>{const x=customers[(game.customerIndex+i)%customers.length];return '<span title="'+x.name+'">'+x.emoji+' '+x.name+'</span>'}).join('');el('customerEmoji').textContent=customer.emoji;el('customerName').textContent=customer.name;el('customerWants').textContent=customer.say;let have=customer.want.filter(code=>(cart[code]||0)>0).length;el('customerProgress').style.width=Math.round(100*have/customer.want.length)+'%';el('customerStatus').textContent=have===customer.want.length?'✅ Kaikki tuotteet löytyivät!':`${have}/${customer.want.length} tuotetta korissa`}
 function nextCustomer(){game.customerIndex++;saveGame();chooseCustomer();speakCustomer();playSound('start')}
-function speakCustomer(){if(!customer)chooseCustomer();speak(customer.say,'customer')}
+function speakCustomer(){
+ if(!customer)chooseCustomer();
+ const firstName=customer.name.split(' ').slice(-1)[0];
+ const intro='Hei! Minä olen '+firstName+'. ';
+ const sentence=String(customer.say||'').replace(/^(Hei hei|Hei|Moi|Mörri moi)[!, .]*\s*(Alper[!, .]*\s*)?/i,'');
+ speak(intro+sentence,'customer');
+}
 function costCents(p){return Math.max(30,Math.round(p.price*55))}
 function totalWholesaleCents(){return products.reduce((sum,p)=>sum+(wholesale[p.code]||0)*costCents(p),0)}
 function renderQuests(){const tasks=[['sale','Palvele 2 asiakasta',game.dailySales||0,2,300],['item','Myy 5 tuotetta',game.dailyItems||0,5,200],['order','Tilaa Tukusta',game.dailyOrders||0,1,150]];el('questList').innerHTML=tasks.map(([key,title,n,goal,reward])=>{const claimed=game.questsClaimed.includes(key),ready=n>=goal;return `<div class="quest"><span><b>${title}</b><br><small>${Math.min(n,goal)} / ${goal} · palkinto ${money(reward)}</small></span><button ${!ready||claimed?'disabled':''} onclick="claimQuest('${key}')">${claimed?'✅ Valmis':ready?'🎁 Hae':'🔒'}</button></div>`}).join('')}
