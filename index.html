@@ -555,6 +555,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeReceipts()});
    const cls=size==='small'?'v9-art small':size==='mini'?'v9-art mini':'v9-art';
    return `<div class="${cls}" aria-hidden="true"><svg viewBox="0 0 120 120" role="presentation"><defs><linearGradient id="g-${p.code}" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${a}"/><stop offset="100%" stop-color="${b}"/></linearGradient></defs><rect x="9" y="9" width="102" height="102" rx="24" fill="url(#g-${p.code})"/>${artBody(p.code)}</svg></div>`;
  }
+ window.alperProductSvgArt = artMarkup;
  function stockInfo(code){
    const left=(typeof inStock==='function'?inStock(code):(stock?.[code]||0));
    return {left, cls:left===0?'stock-out':left<=2?'stock-low':'', label:left===0?'⛔ Loppu':`📦 ${left} kpl jäljellä`};
@@ -639,6 +640,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeReceipts()});
  };
  const paletteByCat={Ruoka:['#fff4da','#f8ead2'],Juomat:['#ffe6f0','#f5dbe8'],Hedelmät:['#ffe6ee','#f6d4df'],Herkkut:['#f1e9ff','#e4d8fb']};
  window.artMarkup=function(p,size='regular'){
+   if(p.cat==='Siivoustarvikkeet' && typeof window.alperProductSvgArt==='function') return window.alperProductSvgArt(p,size);
    const [a,b]=paletteByCat[p.cat]||['#fff7e8','#efe7ff'];
    const cls=size==='small'?'v10-art small':size==='mini'?'v10-art mini':'v10-art';
    const emoji=emojiMap[p.code]||'🛍️';
