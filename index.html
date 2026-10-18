@@ -808,4 +808,87 @@ window.akStartCleaningParade=function(old,btn){
 };
 window.addEventListener("pagehide",stopAudio);
 })();
-</script><script defer src="./cleaning-game.js"></script></body></html>
+</script><script defer src="./cleaning-game.js"></script><style id="alper-voice-conversation-style">
+#alper-voice-chat{margin:12px 0;padding:14px;border:2px solid #c8e6dd;border-radius:20px;background:#f3fff8;color:#183e35}
+#alper-voice-chat .voice-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+#alper-voice-chat button{border:2px solid #b6d8cb;background:white;border-radius:14px;color:#184e40;font-weight:800;padding:12px;min-height:46px}
+#alper-voice-chat #alper-listen{background:#17634c;color:#fff;border-color:#17634c}
+#alper-voice-chat #alper-listen:disabled{opacity:.55}
+#alper-voice-output{margin-top:9px;min-height:38px;font-size:15px}
+</style>
+<script id="alper-voice-conversation">
+(function(){
+"use strict";
+let listening=false,recognition=null;
+const phrases={
+ moi:["moi","hei","terve","moikka","hyvää päivää"],
+ kylla:["kyllä","joo","juu","selvä","ok","okei"],
+ ei:["ei","en","eipä"],
+ kiitos:["kiitos","kiitti","kiitoksia"],
+ heippa:["heippa","näkemiin","moi moi","hei hei"]
+};
+let lastReplyKey="",replyCount=0;
+function findCustomer(){try{return typeof customer!=="undefined"?customer:null}catch(e){return null}}
+function say(text){
+ try{if(typeof speak==="function")speak(text,"customer")}catch(e){}
+}
+function findIntent(input){
+ const t=String(input||"").toLocaleLowerCase("fi-FI").replace(/[^a-zäöå\s]/g," ").trim();
+ for(const [key,variants] of Object.entries(phrases)){
+  if(variants.some(p=>new RegExp("(^|\\s)"+p+"(\\s|$)","i").test(t)))return key;
+ }
+ return "";
+}
+function respond(input,forced){
+ const c=findCustomer();
+ const out=document.getElementById("alper-voice-output");
+ if(!c){if(out)out.textContent="Asiakas ei ole vielä paikalla.";return}
+ const key=forced||findIntent(input);
+ const first=String(c.name).split(" ").slice(-1)[0];
+ const options={
+  moi:["Moi Alper! Minä olen "+first+". Mitä kuuluu?","Hei Alper! Kiva nähdä sinua!"],
+  kylla:["Hienoa! Kiitos Alper!","Mahtavaa! Löytyykö ostoslistani tuotteita?"],
+  ei:["Ei haittaa, katsotaan yhdessä!","Selvä! Voit auttaa minua myöhemmin."],
+  kiitos:["Ole hyvä, Alper!","Kiitos sinulle! Olet mukava kauppias!"],
+  heippa:["Heippa Alper! Nähdään taas!","Näkemiin! Tulen pian uudestaan!"]
+ };
+ if(!key){if(out)out.textContent="En ymmärtänyt. Kokeile: Moi, kyllä, ei tai kiitos.";say("Voisitko sanoa uudelleen?");return}
+ const replies=options[key];
+ const reply=replies[(lastReplyKey===key?++replyCount:replyCount=0)%replies.length];
+ lastReplyKey=key;
+ if(out)out.textContent="🗣️ Alper: "+(input||key)+"  •  "+c.emoji+" "+first+": "+reply;
+ say(reply);
+}
+function listen(){
+ if(listening)return;
+ const out=document.getElementById("alper-voice-output");
+ const R=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!R){if(out)out.textContent="Mikrofoniin perustuva puheentunnistus ei ole käytettävissä. Käytä vastauspainikkeita.";return}
+ try{
+  recognition=new R();
+  recognition.lang="fi-FI";recognition.interimResults=false;recognition.maxAlternatives=1;recognition.continuous=false;
+  const button=document.getElementById("alper-listen");
+  recognition.onresult=e=>{const spoken=e.results?.[0]?.[0]?.transcript||"";respond(spoken)};
+  recognition.onerror=e=>{if(out)out.textContent=e.error==="not-allowed"?"Mikrofonin käyttö estettiin. Voit käyttää painikkeita.":"Puhetta ei tunnistettu. Yritä uudelleen.";};
+  recognition.onend=()=>{listening=false;if(button){button.disabled=false;button.textContent="🎤 Puhu asiakkaalle";}};
+  listening=true;
+  if(button){button.disabled=true;button.textContent="🎙️ Kuuntelen...";}
+  if(out)out.textContent="Sano: Moi, kyllä, ei tai kiitos.";
+  recognition.start();
+ }catch(e){listening=false;if(out)out.textContent="Mikrofoni ei käynnistynyt. Käytä painikkeita.";}
+}
+function init(){
+ if(document.getElementById("alper-voice-chat"))return;
+ const box=document.querySelector(".customer-box");if(!box)return;
+ const node=document.createElement("section");
+ node.id="alper-voice-chat";
+ node.innerHTML='<strong>🎤 Puhu asiakkaalle</strong><div style="font-size:13px">Sano suomeksi “Moi”, “Kyllä”, “Ei” tai “Kiitos”.</div><div class="voice-actions"><button type="button" id="alper-listen">🎤 Puhu asiakkaalle</button><button type="button" data-voice="moi">Moi 👋</button><button type="button" data-voice="kylla">Kyllä 👍</button><button type="button" data-voice="ei">Ei 👎</button><button type="button" data-voice="kiitos">Kiitos 💛</button><button type="button" data-voice="heippa">Heippa 👋</button></div><div id="alper-voice-output" role="status" aria-live="polite">Valitse sana tai käytä mikrofonia.</div>';
+ box.insertAdjacentElement("afterend",node);
+ node.addEventListener("click",event=>{
+  const b=event.target.closest("button");if(!b)return;
+  if(b.id==="alper-listen")listen();else if(b.dataset.voice)respond(b.textContent,b.dataset.voice);
+ });
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
+})();
+</script></body></html>
