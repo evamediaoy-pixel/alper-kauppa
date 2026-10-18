@@ -832,41 +832,117 @@ function findCustomer(){try{return typeof customer!=="undefined"?customer:null}c
 function say(text){
  try{if(typeof speak==="function")speak(text,"customer")}catch(e){}
 }
+// Intent detection accepts inflected Finnish and phrases embedded anywhere in a sentence.
+const vocabulary={
+ greet:/\b(moi|moikka|hei|terve|tervetuloa|huomenta|päivää|iltaa)\b/i,
+ bye:/\b(heippa|näkemiin|hyvästi|nähdään|moro)\b|moi moi|hei hei/i,
+ thanks:/\b(kiitos|kiitti|kiitoksia|kiitän)\b/i,
+ yes:/\b(kyllä|joo|juu|okei|ok|selvä|tottakai|onnistuu)\b/i,
+ no:/\b(ei|en|eipä|eivät|emme|älä)\b/i,
+ price:/(paljonko|kuinka paljon|hinta|hintainen|maksaako|maksaa|euroa|halpa|kallis)/i,
+ pay:/(maksu|maksaa|maksetaan|kortilla|käteisellä|raha|vaihtoraha|maksupääte|kassa|kuitti)/i,
+ stock:/(varasto|tukku|loppu|lisää|jäljellä|löytyykö|onko teillä|saatavilla)/i,
+ bag:/(ostoskass|kassi|pussi|pakka)/i,
+ help:/(auta|auttaa|apua|tarvitsen apua|missä on|mistä löyd|näytä)/i,
+ quantity:/(montako|kuinka monta|kappaletta|yksi|kaksi|kolme|neljä|viisi|kuusi|seitsemän|kahdeksan|yhdeksän|kymmenen)/i,
+ name:/(mikä sinun nimesi|mikä nimesi|kuka sinä olet|mikä nimi|sinun nimi)/i,
+ mood:/(mitä kuuluu|kuinka voit|miltä tuntuu|onko kaikki hyvin)/i,
+ happy:/(hyvä|hienoa|mahtavaa|kiva|hauska|ihana|upea|onnellinen)/i,
+ sad:/(surullinen|harmittaa|paha mieli|väsyttää|väsynyt|ikävä)/i,
+ hungry:/(nälkä|nälkäinen|syödä|ruokaa)/i,
+ thirsty:/(jano|juoda|juomaa)/i,
+ clean:/(siivo|siivous|likainen|roska|imuri|puhdist|pestä)/i,
+ animal:/(eläin|pupu|kani|karhu|kettu|koira|kissa)/i,
+ weather:/(sää|aurinko|sataa|sadetta|lumi|lumisade|kylmä|kuuma)/i,
+ color:/(väri|punainen|sininen|vihreä|keltainen|oranssi)/i,
+ game:/(leikki|peli|pelata|kauppa|ostokset|ostaa|ostan|myydä)/i
+};
+const alias=[
+ ["10001",/maito|maitoa|maidon/i],["10002",/leipä|leipää|leivän/i],
+ ["10003",/omena|omenaa|omenan/i],["10004",/banaani|banaania|banaanin/i],
+ ["10005",/juusto|juustoa/i],["10006",/kananmuna|munia|munaa/i],
+ ["10007",/kahvi|kahvia/i],["10008",/kaakao|kaakaota/i],
+ ["10009",/mehu|mehua/i],["10010",/vesi|vettä|veden/i],
+ ["10011",/jäätelö|jäätelöä/i],["10012",/donitsi|donitsia/i],
+ ["10013",/keksi|keksiä|keksejä/i],["10014",/mansikka|mansikoita/i],
+ ["10015",/pizza|pitsa|pizzaa/i],["10016",/päärynä|päärynää/i],
+ ["10017",/limsa|limsaa/i],["10018",/pulla|pullaa/i],
+ ["10023",/wc.paperi|vessapaperi|tuvalettipaperi/i],
+ ["10024",/talouspaperi/i],["10025",/puhdistussuihke|suihke/i],
+ ["10026",/sieni|sientä/i],["10027",/saippua|saippuaa/i],
+ ["10028",/roskapussi/i],["10029",/ämpäri|ämpäriä/i],
+ ["10030",/harja|harjaa/i],["10031",/käsisaippua/i],
+ ["10032",/nenäliina|nenäliinaa/i],["10033",/ostoskassi|ostoskassia/i],
+ ["10034",/porkkana|porkkanaa/i],["10035",/tomaatti|tomaattia/i],
+ ["10036",/iso käsisaippua/i],["10037",/vesihana|musluk|hanaa/i],
+ ["10038",/kurkku|kurkkua/i]
+];
 function findIntent(input){
  const t=String(input||"").toLocaleLowerCase("fi-FI").normalize("NFC");
- const has=words=>words.some(word=>new RegExp("(^|[^a-zäöå])"+word+"(?=$|[^a-zäöå])","i").test(t));
- if(has(["heippa","näkemiin","hyvästi","moikka moi"])||/hei hei|moi moi/.test(t))return "heippa";
- if(has(["kiitos","kiitti","kiitoksia"]))return "kiitos";
- if(has(["ei","en","emme","eipä"]))return "ei";
- if(has(["kyllä","joo","juu","okei","selvä","on"]))return "kylla";
- if(has(["moi","hei","terve","moikka","päivää"]))return "moi";
- if(has(["maito","maitoa","maidon","porkkana","porkkanaa","tomaatti","tomaattia","kurkku","kurkkua","leipä","leipää","vesi","vettä","kassi","kassia","ostoskassi","ostoskassin"]))return "product";
- if(/paljonko|hinta|maksaa|euro/.test(t))return "price";
- if(/mikä|kuka|nimesi|nimi/.test(t))return "name";
- if(/mitä kuuluu|kuuluuko/.test(t))return "mood";
- return "unknown";
+ const product=alias.find(([code,re])=>re.test(t));
+ // Resolve compound requests by meaning instead of matching the first stray word.
+ if(vocabulary.bye.test(t))return {key:"bye"};
+ if(vocabulary.name.test(t))return {key:"name"};
+ if(vocabulary.mood.test(t))return {key:"mood"};
+ if(vocabulary.price.test(t))return {key:"price",product:product?.[0]};
+ if(vocabulary.clean.test(t))return {key:"clean"};
+ if(vocabulary.bag.test(t))return {key:"bag"};
+ if(product)return {key:"product",product:product[0]};
+ if(vocabulary.stock.test(t))return {key:"stock"};
+ if(vocabulary.pay.test(t))return {key:"pay"};
+ if(vocabulary.help.test(t))return {key:"help"};
+ if(vocabulary.thanks.test(t))return {key:"thanks"};
+ if(vocabulary.no.test(t))return {key:"no"};
+ if(vocabulary.yes.test(t))return {key:"yes"};
+ if(vocabulary.quantity.test(t))return {key:"quantity"};
+ if(vocabulary.hungry.test(t))return {key:"hungry"};
+ if(vocabulary.thirsty.test(t))return {key:"thirsty"};
+ if(vocabulary.animal.test(t))return {key:"animal"};
+ if(vocabulary.weather.test(t))return {key:"weather"};
+ if(vocabulary.color.test(t))return {key:"color"};
+ if(vocabulary.sad.test(t))return {key:"sad"};
+ if(vocabulary.happy.test(t))return {key:"happy"};
+ if(vocabulary.game.test(t))return {key:"game"};
+ if(vocabulary.greet.test(t))return {key:"greet"};
+ return {key:"unknown"};
 }
 function respond(input,forced){
  const c=findCustomer(),out=document.getElementById("alper-voice-output");
  if(!c){if(out)out.textContent="Asiakas ei ole vielä paikalla.";return}
- const key=forced||findIntent(input);
+ const intent=forced?{key:({moi:"greet",kylla:"yes",ei:"no",kiitos:"thanks",heippa:"bye"})[forced]||forced}:findIntent(input);
  const name=String(c.name).split(" ").slice(-1)[0];
- const responses={
-  moi:["Moi Alper! Minä olen "+name+". Kiva nähdä!","Hei Alper! Voisitko auttaa minua?"],
-  kylla:["Hienoa, kiitos Alper!","Mahtavaa! Katsotaan ostoslistaani."],
-  ei:["Ei haittaa, yritetään yhdessä!","Selvä, kysyn sitten uudelleen."],
-  kiitos:["Ole hyvä, Alper!","Kiitos sinulle, Alper!"],
-  heippa:["Heippa Alper! Nähdään taas!","Näkemiin, tulemme taas!"],
-  product:["Katsotaan, löytyykö sitä kaupasta!","Hyvä kysymys, etsitään tuote yhdessä!"],
-  price:["Näet tuotteen hinnan kassalla!","Skannaa tuote, niin näemme hinnan!"],
-  name:["Minä olen "+name+". Hauska tutustua, Alper!"],
-  mood:["Minulle kuuluu hyvää! Entä sinulle?"],
-  unknown:["Kuulin sinut, Alper! Voitko sanoa uudelleen?","Yritetään yhdessä. Mitä haluaisit sanoa?"]
+ const p=typeof products!=="undefined"?products.find(x=>x.code===intent.product):null;
+ const money=n=>Number(n).toLocaleString("fi-FI",{style:"currency",currency:"EUR"});
+ const choices={
+ greet:["Moi Alper! Olen "+name+".","Hei Alper, hauska nähdä!"],
+ bye:["Heippa Alper, nähdään taas!","Näkemiin, Alper!"],
+ thanks:["Ole hyvä, Alper!","Kiitos sinulle, Alper!"],
+ yes:["Hienoa, kiitos!","Mahtavaa, Alper!"],
+ no:["Ei haittaa, Alper!","Selvä, katsotaan uudelleen!"],
+ name:["Minun nimeni on "+name+"."],
+ mood:["Minulle kuuluu hyvää, kiitos!"],
+ price:[p?p.name+" maksaa "+money(p.price)+".":"Näet hinnan tuotteen kortista!"],
+ product:[p?(stock[p.code]>0?p.name+" löytyy hyllystä!":p.name+" on loppu varastosta."):"Etsitään se yhdessä!"],
+ stock:["Katsotaan varastosta!"],
+ bag:["Kyllä kiitos, haluan ostoskassin!"],
+ pay:["Voinko maksaa kassalla?"],
+ help:["Autetaan toisiamme, Alper!"],
+ quantity:["Lasketaan tuotteet yhdessä!"],
+ hungry:["Minulla on vähän nälkä!"],
+ thirsty:["Minulle maistuisi mehu!"],
+ clean:["Siivotaan kauppa yhdessä!"],
+ animal:["Eläimetkin käyvät täällä ostoksilla!"],
+ weather:["Toivottavasti tänään paistaa aurinko!"],
+ color:["Minä pidän kirkkaista väreistä!"],
+ sad:["Voi harmi, olen täällä kaverinasi!"],
+ happy:["Kiva kuulla, Alper!"],
+ game:["Onpa mukavaa käydä Alperin kaupassa!"],
+ unknown:["En ymmärtänyt ihan kaikkea, Alper. Kerrotko uudelleen?"]
  };
- const choices=responses[key]||responses.unknown;
- const reply=choices[(lastReplyKey===key?++replyCount:(replyCount=0))%choices.length];
+ const key=intent.key,arr=choices[key]||choices.unknown;
+ const reply=arr[(lastReplyKey===key?++replyCount:(replyCount=0))%arr.length];
  lastReplyKey=key;
- if(out){out.textContent="👦 Alper sanoi: "+input+"\n"+c.emoji+" "+name+": "+reply;out.style.whiteSpace="pre-line"}
+ if(out){out.textContent="👂 Kuulin: "+input+"\n"+c.emoji+" "+name+": "+reply;out.style.whiteSpace="pre-line";}
  say(reply);
 }
 function listen(){
