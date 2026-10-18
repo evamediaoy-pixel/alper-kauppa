@@ -862,20 +862,60 @@ function respond(input,forced){
 function listen(){
  if(listening)return;
  const out=document.getElementById("alper-voice-output");
+ const button=document.getElementById("alper-listen");
  const R=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!R){if(out)out.textContent="Mikrofoniin perustuva puheentunnistus ei ole käytettävissä. Käytä vastauspainikkeita.";return}
+ if(!R){
+  if(out)out.textContent="Tämä selain ei tue puheentunnistusta. Kokeile Chromea Androidilla tai käytä vastauspainikkeita.";
+  return;
+ }
+ if(!window.isSecureContext){if(out)out.textContent="Mikrofoni vaatii HTTPS-yhteyden.";return}
  try{
+  // Stop the customer's speech before opening the microphone to prevent audio feedback.
+  window.speechSynthesis?.cancel();
   recognition=new R();
-  recognition.lang="fi-FI";recognition.interimResults=false;recognition.maxAlternatives=1;recognition.continuous=false;
-  const button=document.getElementById("alper-listen");
-  recognition.onresult=e=>{const spoken=e.results?.[0]?.[0]?.transcript||"";respond(spoken)};
-  recognition.onerror=e=>{if(out)out.textContent=e.error==="not-allowed"?"Mikrofonin käyttö estettiin. Voit käyttää painikkeita.":"Puhetta ei tunnistettu. Yritä uudelleen.";};
-  recognition.onend=()=>{listening=false;if(button){button.disabled=false;button.textContent="🎤 Puhu asiakkaalle";}};
+  recognition.lang="fi-FI";
+  recognition.interimResults=true;
+  recognition.maxAlternatives=3;
+  recognition.continuous=false;
+  let received=false;
+  recognition.onstart=()=>{if(out)out.textContent="🎙️ Kuuntelen nyt. Puhu selkeästi: Moi, kyllä, ei tai kiitos."};
+  recognition.onspeechstart=()=>{if(out)out.textContent="🎙️ Kuulen puhetta..."};
+  recognition.onresult=e=>{
+   let spoken="";
+   for(let i=e.resultIndex;i<e.results.length;i++){
+    if(e.results[i][0]?.transcript)spoken=e.results[i][0].transcript;
+   }
+   if(out&&spoken)out.textContent="Kuulin: "+spoken;
+   const final=Array.from(e.results).some(item=>item.isFinal);
+   if(final&&!received){
+    received=true;
+    respond(spoken);
+   }
+  };
+  recognition.onerror=e=>{
+   const info={
+    "not-allowed":"Mikrofonin käyttö estettiin. Tarkista selaimen mikrofonilupa.",
+    "service-not-allowed":"Puheentunnistuspalvelu ei ole käytettävissä tässä selaimessa.",
+    "no-speech":"Puhetta ei havaittu. Kokeile puhua heti painamisen jälkeen.",
+    "audio-capture":"Mikrofonia ei löydy tai toinen sovellus käyttää sitä.",
+    "network":"Puheentunnistus ei saanut verkkoyhteyttä.",
+    "language-not-supported":"Suomen puheentunnistus ei ole käytettävissä tässä laitteessa."
+   };
+   if(out)out.textContent=info[e.error]||("Puheentunnistusvirhe: "+e.error);
+  };
+  recognition.onend=()=>{
+   listening=false;
+   if(button){button.disabled=false;button.textContent="🎤 Puhu asiakkaalle";}
+   if(!received&&out&&out.textContent.includes("Kuulen puhetta"))out.textContent="Puhe kuului, mutta sanoja ei tunnistettu. Kokeile uudelleen.";
+  };
   listening=true;
   if(button){button.disabled=true;button.textContent="🎙️ Kuuntelen...";}
-  if(out)out.textContent="Sano: Moi, kyllä, ei tai kiitos.";
   recognition.start();
- }catch(e){listening=false;if(out)out.textContent="Mikrofoni ei käynnistynyt. Käytä painikkeita.";}
+ }catch(e){
+  listening=false;
+  if(button){button.disabled=false;button.textContent="🎤 Puhu asiakkaalle";}
+  if(out)out.textContent="Puheentunnistus ei käynnistynyt: "+(e?.message||"tuntematon virhe");
+ }
 }
 function init(){
  if(document.getElementById("alper-voice-chat"))return;
@@ -884,6 +924,13 @@ function init(){
  node.id="alper-voice-chat";
  node.innerHTML='<strong>🎤 Puhu asiakkaalle</strong><div style="font-size:13px">Sano suomeksi “Moi”, “Kyllä”, “Ei” tai “Kiitos”.</div><div class="voice-actions"><button type="button" id="alper-listen">🎤 Puhu asiakkaalle</button><button type="button" data-voice="moi">Moi 👋</button><button type="button" data-voice="kylla">Kyllä 👍</button><button type="button" data-voice="ei">Ei 👎</button><button type="button" data-voice="kiitos">Kiitos 💛</button><button type="button" data-voice="heippa">Heippa 👋</button></div><div id="alper-voice-output" role="status" aria-live="polite">Valitse sana tai käytä mikrofonia.</div>';
  box.insertAdjacentElement("afterend",node);
+ const support=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!support){
+  const button=node.querySelector("#alper-listen");
+  if(button){button.disabled=true;button.textContent="🎤 Ei tuettu tässä selaimessa";}
+  const message=node.querySelector("#alper-voice-output");
+  if(message)message.textContent="Tämä selain ei tue puheentunnistusta. Käytä alla olevia vastauspainikkeita.";
+ }
  node.addEventListener("click",event=>{
   const b=event.target.closest("button");if(!b)return;
   if(b.id==="alper-listen")listen();else if(b.dataset.voice)respond(b.textContent,b.dataset.voice);
